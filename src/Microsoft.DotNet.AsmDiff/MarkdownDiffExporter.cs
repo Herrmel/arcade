@@ -34,15 +34,13 @@ namespace Microsoft.DotNet.AsmDiff
             }
             else
             {
-                using (var writer = new StreamWriter(_path))
-                {
-                    WriteHeader(writer);
+                using var writer = new StreamWriter(_path);
+                WriteHeader(writer);
 
-                    if (_includeTableOfContents)
-                        WriteTableOfContents(writer);
+                if (_includeTableOfContents)
+                    WriteTableOfContents(writer);
 
-                    WriteDiffForNamespaces(writer);
-                }
+                WriteDiffForNamespaces(writer);
             }
         }
 
@@ -50,20 +48,19 @@ namespace Microsoft.DotNet.AsmDiff
         {
             if (_diffDocument.IsDiff)
             {
-                writer.WriteLine("# API Difference {0} vs {1}", _diffDocument.Left.Name, _diffDocument.Right.Name);
+                writer.WriteLine(Resources.MarkdownTitle, _diffDocument.Left.Name, _diffDocument.Right.Name);
             }
             else
             {
                 string singleSideName = _diffDocument.Left.IsEmpty ? _diffDocument.Right.Name : _diffDocument.Left.Name;
-                writer.WriteLine("# API List of {0}", singleSideName);
+                writer.WriteLine(Resources.MarkdownAPIListTitle, singleSideName);
             }
 
             writer.WriteLine();
 
             if (_diffDocument.IsDiff)
             {
-                writer.WriteLine("API listing follows standard diff formatting. Lines preceded by a '+' are");
-                writer.WriteLine("additions and a '-' indicates removal.");
+                writer.WriteLine(Resources.MarkdownDiffDescription);
                 writer.WriteLine();
             }
         }
@@ -88,8 +85,8 @@ namespace Microsoft.DotNet.AsmDiff
                 foreach (var topLevelApi in _diffDocument.ApiDefinitions)
                 {
                     string fileName = GetFileNameForNamespace(topLevelApi.Name);
-                    using (var nestedWriter = new StreamWriter(fileName))
-                        WriteDiffForNamespace(nestedWriter, topLevelApi, isStandalone: true);
+                    using var nestedWriter = new StreamWriter(fileName);
+                    WriteDiffForNamespace(nestedWriter, topLevelApi, isStandalone: true);
                 }
             }
             else
@@ -123,7 +120,7 @@ namespace Microsoft.DotNet.AsmDiff
         {
             bool hasChildren = api.Children.Any();
 
-            string indent = new string(' ', level * 4);
+            string indent = new(' ', level * 4);
             string suffix = hasChildren ? " {" : string.Empty;
             DifferenceType diff = api.Difference;
 
@@ -195,12 +192,10 @@ namespace Microsoft.DotNet.AsmDiff
         private static IEnumerable<string> GetCSharpDecalarationLines(IDefinition api)
         {
             string text = api.GetCSharpDeclaration();
-            using (var reader = new StringReader(text))
-            {
-                string line;
-                while ((line = reader.ReadLine()) != null)
-                    yield return line;
-            }
+            using var reader = new StringReader(text);
+            string line;
+            while ((line = reader.ReadLine()) != null)
+                yield return line;
         }
 
         private string GetLinkTarget(string namespaceName)

@@ -8,9 +8,9 @@ namespace Microsoft.DotNet.AsmDiff.CSV
 {
     public class CsvTextWriter : CsvWriter 
     {
-        private TextWriter _textWriter;
+        private readonly TextWriter _textWriter;
         private bool _valuesSeen;
-        private char[] _textDelimiters;
+        private readonly char[] _textDelimiters;
 
         public CsvTextWriter(TextWriter textWriter)
             : this(textWriter, CsvSettings.Default)

@@ -183,7 +183,7 @@ namespace Microsoft.Cci.Writers
                 // For more details see issue https://github.com/dotnet/corefx/issues/6185
                 // this blog is helpful as well http://blog.paranoidcoding.com/2016/02/15/are-private-members-api-surface.html
 
-                List<IFieldDefinition> newFields = new List<IFieldDefinition>();
+                List<IFieldDefinition> newFields = new();
                 var includedVisibleFields = fields.Where(f => _cciFilter.Include(f));
                 includedVisibleFields = includedVisibleFields.OrderBy(GetMemberKey, StringComparer.OrdinalIgnoreCase);
 
@@ -269,7 +269,7 @@ namespace Microsoft.Cci.Writers
         {
             if (IncludeMemberGroupHeadings || IncludeSpaceBetweenMemberGroups)
             {
-                string header = CSharpWriter.MemberGroupHeading(member);
+                string header = MemberGroupHeading(member);
 
                 if (header != null)
                 {
@@ -296,38 +296,15 @@ namespace Microsoft.Cci.Writers
             }
         }
 
-        public static string MemberGroupHeading(ITypeDefinitionMember member)
+        public static string MemberGroupHeading(ITypeDefinitionMember member) => member switch 
         {
-            if (member == null)
-                return null;
-
-            IMethodDefinition method = member as IMethodDefinition;
-            if (method != null)
-            {
-                if (method.IsConstructor)
-                    return "Constructors";
-
-                return "Methods";
-            }
-
-            IFieldDefinition field = member as IFieldDefinition;
-            if (field != null)
-                return "Fields";
-
-            IPropertyDefinition property = member as IPropertyDefinition;
-            if (property != null)
-                return "Properties";
-
-            IEventDefinition evnt = member as IEventDefinition;
-            if (evnt != null)
-                return "Events";
-
-            INestedTypeDefinition nType = member as INestedTypeDefinition;
-            if (nType != null)
-                return "Nested Types";
-
-            return null;
-        }
+            IMethodDefinition method => method.IsConstructor? "Constructors" : "Methods",
+            IFieldDefinition => "Fields",
+            IPropertyDefinition => "Properties",
+            IEventDefinition => "Events",
+            INestedTypeDefinition => "Nested Types",
+            _ => null
+        };
 
         public void Dispose()
         {

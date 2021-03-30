@@ -9,7 +9,7 @@ namespace Microsoft.DotNet.AsmDiff.CSV
 {
     public abstract class DiffAssemblyCsvColumn : DiffCsvColumn
     {
-        private int _index;
+        private readonly int _index;
 
         protected DiffAssemblyCsvColumn(DiffConfiguration diffConfiguration, int index)
             : base(diffConfiguration)
@@ -26,18 +26,14 @@ namespace Microsoft.DotNet.AsmDiff.CSV
         {
             get
             {
-                switch (_index)
+                return _index switch
                 {
-                    case 0:
-                        return DiffConfiguration.IsDiff
-                                   ? "OldAssembly"
-                                   : "Assembly";
-                    case 1:
-                        return "NewAssembly";
-
-                    default:
-                        throw new ArgumentException();
-                }
+                    0 => DiffConfiguration.IsDiff
+                        ? "OldAssembly"
+                        : "Assembly",
+                    1 => "NewAssembly",
+                    _ => throw new ArgumentException(),
+                };
             }
         }
 
@@ -55,9 +51,7 @@ namespace Microsoft.DotNet.AsmDiff.CSV
                                ? mapping[_index].ContainingTypeDefinition
                                : null;
 
-            var assembly = containingTypeDefinition == null
-                               ? null
-                               : containingTypeDefinition.GetAssembly();
+            var assembly = containingTypeDefinition?.GetAssembly();
 
             return assembly == null ? string.Empty : assembly.Name.Value;
         }

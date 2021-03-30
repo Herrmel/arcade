@@ -20,11 +20,9 @@ namespace Microsoft.DotNet.AsmDiff
         public static void Export(DiffConfiguration configuration, IEnumerable<DiffComment> diffComments, DiffFormat format, TextWriter streamWriter)
         {
             var strikeOutRemoved = configuration.IsOptionSet(DiffConfigurationOptions.StrikeRemoved);
-            using (var syntaxWriter = GetExportWriter(format, streamWriter, strikeOutRemoved))
-            {
-                var writer = CreateExportWriter(format, streamWriter, configuration, syntaxWriter, diffComments);
-                WriteDiff(configuration, writer);
-            }
+            using var syntaxWriter = GetExportWriter(format, streamWriter, strikeOutRemoved);
+            var writer = CreateExportWriter(format, streamWriter, configuration, syntaxWriter, diffComments);
+            WriteDiff(configuration, writer);
         }
 
         private static void WriteDiff(DiffConfiguration configuration, ICciDifferenceWriter writer)
@@ -75,28 +73,19 @@ namespace Microsoft.DotNet.AsmDiff
             }
         }
 
-        private static IStyleSyntaxWriter GetExportWriter(DiffFormat format, TextWriter textWriter, bool strikeOutRemoved)
+        private static IStyleSyntaxWriter GetExportWriter(DiffFormat format, TextWriter textWriter, bool strikeOutRemoved) => format switch
         {
-            switch (format)
-            {
-                case DiffFormat.Csv:
-                    return null;
-                case DiffFormat.Html:
-                    return new HtmlSyntaxWriter(textWriter) {StrikeOutRemoved = strikeOutRemoved};
-                case DiffFormat.WordXml:
-                    return new OpenXmlSyntaxWriter(textWriter);
-                case DiffFormat.Text:
-                    return new TextSyntaxWriter(textWriter);
-                case DiffFormat.UnifiedDiff:
-                    return new UnifiedDiffSyntaxWriter(textWriter);
-                default:
-                    throw new ArgumentOutOfRangeException("format");
-            }
-        }
+            DiffFormat.Csv => null,
+            DiffFormat.Html => new HtmlSyntaxWriter(textWriter) { StrikeOutRemoved = strikeOutRemoved },
+            DiffFormat.WordXml => new OpenXmlSyntaxWriter(textWriter),
+            DiffFormat.Text => new TextSyntaxWriter(textWriter),
+            DiffFormat.UnifiedDiff => new UnifiedDiffSyntaxWriter(textWriter),
+            _ => throw new ArgumentOutOfRangeException("format"),
+        };
 
         public static MappingSettings GetMappingSettings(DiffConfiguration configuration)
         {
-            Func<DifferenceType, bool> diffFilterPredicate = t => (t != DifferenceType.Added || configuration.IsOptionSet(DiffConfigurationOptions.IncludeAdded)) &&
+            bool diffFilterPredicate(DifferenceType t) => (t != DifferenceType.Added || configuration.IsOptionSet(DiffConfigurationOptions.IncludeAdded)) &&
                                                                   (t != DifferenceType.Changed || configuration.IsOptionSet(DiffConfigurationOptions.IncludeChanged)) &&
                                                                   (t != DifferenceType.Removed || configuration.IsOptionSet(DiffConfigurationOptions.IncludeRemoved)) &&
                                                                   (t != DifferenceType.Unchanged || configuration.IsOptionSet(DiffConfigurationOptions.IncludeUnchanged));
@@ -141,9 +130,7 @@ namespace Microsoft.DotNet.AsmDiff
         {
             try
             {
-                IEnumerable<DiffToken> tokens;
-                IEnumerable<DiffApiDefinition> apiDefinitions;
-                GetTokens(configuration, cancellationToken, out tokens, out apiDefinitions);
+                GetTokens(configuration, cancellationToken, out IEnumerable<DiffToken> tokens, out IEnumerable<DiffApiDefinition> apiDefinitions);
 
                 IEnumerable<DiffLine> lines = GetLines(tokens, cancellationToken);
                 AssemblySet left = configuration.Left;

@@ -59,22 +59,14 @@ namespace Microsoft.DotNet.AsmDiff.CSV
             return string.Concat(tokens.Select(t => t.Token));
         }
 
-        private static string GetDifferencePrefix(DifferenceType differenceType)
+        private static string GetDifferencePrefix(DifferenceType differenceType) => differenceType switch
         {
-            switch (differenceType)
-            {
-                case DifferenceType.Unknown:
-                case DifferenceType.Unchanged:
-                    return string.Empty;
-                case DifferenceType.Added:
-                    return "+";
-                case DifferenceType.Removed:
-                    return "-";
-                // DifferenceType.Changed can never occur during a token diff.
-                default:
-                    throw new ArgumentOutOfRangeException("differenceType");
-            }
-        }
+            DifferenceType.Unknown or DifferenceType.Unchanged => string.Empty,
+            DifferenceType.Added => "+",
+            DifferenceType.Removed => "-",
+            // DifferenceType.Changed can never occur during a token diff.
+            _ => throw new ArgumentOutOfRangeException("differenceType"),
+        };
 
         public override string GetValue(NamespaceMapping mapping)
         {

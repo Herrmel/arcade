@@ -223,33 +223,28 @@ namespace Microsoft.DotNet.AsmDiff
         {
             var docId = GetDocId(mapping);
             var commentSet = _diffComments.Where((c) => c.DocId == docId).Reverse().ToArray();
-            var reviewCommentWriter = _syntaxWriter as IReviewCommentWriter;
-            if (commentSet.Any() && reviewCommentWriter != null)
+            if (commentSet.Any() && _syntaxWriter is IReviewCommentWriter reviewCommentWriter)
             {
                 foreach (var comment in commentSet)
                 {
                     reviewCommentWriter.WriteReviewComment(comment.Author, comment.Text);
-                    _syntaxWriter.WriteLine();    
+                    _syntaxWriter.WriteLine();
                 }
             }
         }
 
         public string GetDocId<TElement>(ElementMapping<TElement> mapping) where TElement : class
         {
-            var namespaceMapping = mapping as NamespaceMapping;
-            if (namespaceMapping != null)
+            if (mapping is NamespaceMapping namespaceMapping)
                 return namespaceMapping.Representative.DocId();
 
-            var typeMapping = mapping as TypeMapping;
-            if (typeMapping != null)
+            if (mapping is TypeMapping typeMapping)
                 return typeMapping.Representative.DocId();
 
-            var memberMapping = mapping as MemberMapping;
-            if (memberMapping != null)
+            if (mapping is MemberMapping memberMapping)
                 return memberMapping.Representative.DocId();
 
-            var assemblyMapping = mapping as AssemblyMapping;
-            if (assemblyMapping != null)
+            if (mapping is AssemblyMapping assemblyMapping)
                 return assemblyMapping.Representative.DocId();
 
             return string.Empty;
@@ -340,7 +335,7 @@ namespace Microsoft.DotNet.AsmDiff
             int t1Start = 0;
             int t2Start = 0;
 
-            List<Tuple<DifferenceType, SyntaxToken>> merged = new List<Tuple<DifferenceType, SyntaxToken>>();
+            List<Tuple<DifferenceType, SyntaxToken>> merged = new();
 
             //TODO: Consider splitting by lines as well to help with the attribute diffing
 

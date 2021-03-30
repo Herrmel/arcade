@@ -12,11 +12,11 @@ namespace Microsoft.DotNet.AsmDiff
 {
     internal sealed class ApiRecordingCSharpDiffWriter : DiffCSharpWriter, ICciDifferenceWriter
     {
-        private DiffRecorder _diffRecorder;
-        private MappingSettings _settings;
-        private List<DiffApiDefinition> _apis = new List<DiffApiDefinition>();
-        private Stack<List<DiffApiDefinition>> _apiStack = new Stack<List<DiffApiDefinition>>();
-        private Stack<DiffApiDefinition> _apiDefinitionStack = new Stack<DiffApiDefinition>();
+        private readonly DiffRecorder _diffRecorder;
+        private readonly MappingSettings _settings;
+        private List<DiffApiDefinition> _apis = new();
+        private readonly Stack<List<DiffApiDefinition>> _apiStack = new();
+        private readonly Stack<DiffApiDefinition> _apiDefinitionStack = new();
 
         public ApiRecordingCSharpDiffWriter(DiffRecorder diffRecorder, MappingSettings settings, bool includePseudoCustomAttributes)
             : base(diffRecorder, settings, Enumerable.Empty<DiffComment>(), includePseudoCustomAttributes)
@@ -124,8 +124,7 @@ namespace Microsoft.DotNet.AsmDiff
 
         private static bool IsPropertyOrEventAccessor(ITypeDefinitionMember representative)
         {
-            var methodDefinition = representative as IMethodDefinition;
-            if (methodDefinition == null)
+            if (representative is not IMethodDefinition methodDefinition)
                 return false;
 
             return methodDefinition.IsPropertyOrEventAccessor();

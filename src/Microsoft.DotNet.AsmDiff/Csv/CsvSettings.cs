@@ -7,7 +7,7 @@ namespace Microsoft.DotNet.AsmDiff.CSV
 {
     public struct CsvSettings
     {
-        public static CsvSettings Default = new CsvSettings(
+        public static CsvSettings Default = new(
                     encoding: Encoding.UTF8,
                     delimiter: ',',
                     textQualifier: '"'

@@ -114,7 +114,7 @@ namespace Microsoft.DotNet.AsmDiff
 
         private static DiffConfiguration UpdateAssemblies(this DiffConfiguration configuration, bool isLeft, IEnumerable<string> newPaths, string newName)
         {
-            var assemblySet = AssemblySet.FromPaths(newPaths, newName);
+            var assemblySet = AssemblySet.FromPaths(newName, newPaths);
             return configuration.UpdateAssemblies(isLeft, assemblySet);
         }
 

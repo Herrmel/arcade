@@ -14,6 +14,15 @@ namespace Microsoft.DotNet.AsmDiff
         public string OldSet { get; set; }
         [Option("-ns|--NewSet", "Provide path to an assembly or directory for an assembly set to gather the new set of types. If this parameter is not provided the API's for the oldset will be printed instead of the diff.", CommandOptionType.SingleValue)]
         public string NewSet { get; set; }
+        
+        [Option("-nsn|--NewSetName", "Provide a name for the new set in output. If this parameter is not provided the file- or directoryname will be used.", CommandOptionType.SingleValue)]
+        public string NewSetName { get; set; }
+        [Option("-osn|--OldSetName", "Provide a name for the old set in output. If this parameter is not provided the file- or directoryname will be used.", CommandOptionType.SingleValue)]
+        public string OldSetName { get; set; }
+
+        [Option("-l|--Language", "Provide a languagetag for localized content. If this parameter is not provided the environments default language will be used. Currently language specific content is only available in Markdown.", CommandOptionType.SingleValue)]
+        public string Language { get; set; }
+
 
         [Option("-u|--Unchanged", "Include members, types, and namespaces that are unchanged.", CommandOptionType.NoValue)]
         public bool Unchanged { get; set; }
@@ -79,13 +88,20 @@ namespace Microsoft.DotNet.AsmDiff
                 Added = Removed = Changed = true;
             }
 
+            if (!string.IsNullOrEmpty(Language))
+            {
+                var cultureInfo = System.Globalization.CultureInfo.GetCultureInfo(Language);
+                System.Threading.Thread.CurrentThread.CurrentCulture = cultureInfo;
+                System.Threading.Thread.CurrentThread.CurrentUICulture = cultureInfo;
+            }
+
             DiffConfigurationOptions options = GetDiffOptions();
             DiffFormat diffFormat = GetDiffFormat();
             
-            AssemblySet oldAssemblies = AssemblySet.FromPaths(OldSet);
-            AssemblySet newAssemblies = AssemblySet.FromPaths(NewSet);
+            AssemblySet oldAssemblies = AssemblySet.FromPaths(OldSetName, OldSet);
+            AssemblySet newAssemblies = AssemblySet.FromPaths(NewSetName, NewSet);
             
-            DiffConfiguration diffConfiguration = new DiffConfiguration(oldAssemblies, newAssemblies, options);
+            DiffConfiguration diffConfiguration = new(oldAssemblies, newAssemblies, options);
 
             if (diffFormat == DiffFormat.Md)
             {
@@ -95,8 +111,8 @@ namespace Microsoft.DotNet.AsmDiff
             }
             else
             {
-                using (TextWriter output = GetOutput())
-                    DiffEngine.Export(diffConfiguration, null, diffFormat, output);
+                using TextWriter output = GetOutput();
+                DiffEngine.Export(diffConfiguration, null, diffFormat, output);
             }
         }
 
@@ -154,32 +170,20 @@ namespace Microsoft.DotNet.AsmDiff
             return result;
         }
 
-        private  DiffFormat GetDiffFormat()
+        private DiffFormat GetDiffFormat() => DiffWriter switch
         {
-            switch (DiffWriter)
+            DiffWriterType.CSharp => SyntaxWriter switch
             {
-                case DiffWriterType.CSharp:
-                    switch (SyntaxWriter)
-                    {
-                        case SyntaxWriterType.Html:
-                            return DiffFormat.Html;
-                        case SyntaxWriterType.Text:
-                            return DiffFormat.Text;
-                        case SyntaxWriterType.Diff:
-                            return DiffFormat.UnifiedDiff;
-                        case SyntaxWriterType.Xml:
-                            return DiffFormat.WordXml;
-                        default:
-                            throw new ArgumentOutOfRangeException();
-                    }
-                case DiffWriterType.CSV:
-                    return DiffFormat.Csv;
-                case DiffWriterType.Markdown:
-                    return DiffFormat.Md;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
+                SyntaxWriterType.Html => DiffFormat.Html,
+                SyntaxWriterType.Text => DiffFormat.Text,
+                SyntaxWriterType.Diff => DiffFormat.UnifiedDiff,
+                SyntaxWriterType.Xml => DiffFormat.WordXml,
+                _ => throw new ArgumentOutOfRangeException(),
+            },
+            DiffWriterType.CSV => DiffFormat.Csv,
+            DiffWriterType.Markdown => DiffFormat.Md,
+            _ => throw new ArgumentOutOfRangeException(),
+        };
 
         public TextWriter GetOutput()
         {

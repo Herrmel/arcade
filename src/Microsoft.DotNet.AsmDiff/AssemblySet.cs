@@ -84,20 +84,21 @@ namespace Microsoft.DotNet.AsmDiff
             return new AssemblySet(metadataHost, assemblies, name);
         }
 
-        public static AssemblySet FromPaths(params string[] paths)
+        public static AssemblySet FromPaths(string name, params string[] paths)
         {
-            return FromPaths(paths.AsEnumerable(), null);
+            return FromPaths(name, paths.AsEnumerable());
         }
 
-        public static AssemblySet FromPaths(IEnumerable<string> paths, string name)
+        public static AssemblySet FromPaths(string name, IEnumerable<string> paths)
         {
             if (paths == null)
                 return Empty;
 
-            var environment = new HostEnvironment();
-
-            // TODO: That's not necessarily great. We may want to expose a setting for that.
-            environment.UnifyToLibPath = true;
+            var environment = new HostEnvironment
+            {
+                // TODO: That's not necessarily great. We may want to expose a setting for that.
+                UnifyToLibPath = true
+            };
 
             // We want to support path separators here, such as D:\foo.dll;D:\bar.dll
             var allPaths = paths.SelectMany(HostEnvironment.SplitPaths).ToArray();
@@ -131,7 +132,7 @@ namespace Microsoft.DotNet.AsmDiff
             var assemblyPaths = Assemblies.Except(snapshot).Select(a => a.Location).ToArray();
             var dependencyPaths = Dependencies.Except(snapshot).Select(a => a.Location).ToArray();
             var allPaths = assemblyPaths.Union(dependencyPaths);
-            var newAssemblySet = FromPaths(allPaths, Name);
+            var newAssemblySet = FromPaths(Name, allPaths);
             var newAssemblies = assemblyPaths.Select(p => newAssemblySet.Host.LoadUnitFrom(p)).OfType<IAssembly>();
             return newAssemblySet.WithAssemblies(newAssemblies);
         }
@@ -209,27 +210,26 @@ namespace Microsoft.DotNet.AsmDiff
                    select new ClassifiedAssembly(reference, classification);
         }
 
-        public static readonly AssemblySet Empty = new AssemblySet(null, Enumerable.Empty<IAssembly>(), "Empty");
+        public static readonly AssemblySet Empty = new(null, Enumerable.Empty<IAssembly>(), "Empty");
 
-        public bool IsEmpty { get; private set; }
+        public bool IsEmpty { get; }
 
         public bool IsNull
         {
             get { return ReferenceEquals(this, Empty); }
         }
 
-        public IMetadataHost Host { get; private set; }
+        public IMetadataHost Host { get; }
 
-        public string Name { get; private set; }
+        public string Name { get; }
 
-        public ReadOnlyCollection<IAssembly> Assemblies { get; private set; }
+        public ReadOnlyCollection<IAssembly> Assemblies { get; }
 
-        public ReadOnlyCollection<IAssembly> Dependencies { get; private set; }
+        public ReadOnlyCollection<IAssembly> Dependencies { get; }
 
         public void Dispose()
         {
-            var disposableHost = Host as IDisposable;
-            if (disposableHost != null)
+            if (Host is IDisposable disposableHost)
                 disposableHost.Dispose();
         }
 

@@ -13,9 +13,9 @@ namespace Microsoft.DotNet.AsmDiff
 {
     internal sealed class DiffCsvWriter : MappingsTypeMemberTraverser, ICciDifferenceWriter
     {
-        private CsvWriter _writer;
-        private IEnumerable<IDiffCsvColumn> _columns;
-        private CancellationToken _cancellationToken;
+        private readonly CsvWriter _writer;
+        private readonly IEnumerable<IDiffCsvColumn> _columns;
+        private readonly CancellationToken _cancellationToken;
 
         public DiffCsvWriter(CsvWriter writer, MappingSettings settings, IEnumerable<IDiffCsvColumn> columns, CancellationToken cancellationToken)
             : base(settings)

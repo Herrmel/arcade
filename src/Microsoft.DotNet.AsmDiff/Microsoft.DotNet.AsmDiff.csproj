@@ -12,11 +12,26 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <Compile Include="..\Common\Internal\DisposeAction.cs" Link="Internal\DisposeAction.cs"/>
+    <Compile Include="..\Common\Internal\DisposeAction.cs" Link="Internal\DisposeAction.cs" />
     <ProjectReference Include="..\Microsoft.Cci.Extensions\Microsoft.Cci.Extensions.csproj" />
   </ItemGroup>
   
   <ItemGroup>
     <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="$(McMasterExtensionsCommandLineUtils)" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Compile Update="Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <EmbeddedResource Update="Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
 </Project>
