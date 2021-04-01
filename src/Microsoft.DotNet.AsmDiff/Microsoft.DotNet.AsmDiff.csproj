@@ -9,6 +9,7 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>dotnet-asmdiff</ToolCommandName>
     <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
+    <StrongNameKeyId>Open</StrongNameKeyId>
   </PropertyGroup>
   
   <ItemGroup>
